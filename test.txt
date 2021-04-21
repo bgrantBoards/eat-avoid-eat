@@ -1,5 +1,0 @@
-<<<<<<< HEAD
-Winner Winner Chicken Dinner
-=======
-No, my change was better!
->>>>>>> d54f206f24d7ea40acc61f465e81f72eb471e789
