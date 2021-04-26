@@ -53,7 +53,7 @@ class PyGameView(HungrySharksView):
     def __init__(self, field):
         self._field = field
         # pygame.display.set_mode((width_of_window,height_of_window))
-        self._color1 = (255, 140, 255)
+        self._color1 = (140, 255, 255)
         self._color2 = (0, 0, 0)
 
         # Initialize a pygame window and add it as an attribute
@@ -66,14 +66,21 @@ class PyGameView(HungrySharksView):
 
     def draw(self):
         for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+            if event.type == QUIT:
                 pygame.quit()
-                quit()
+                sys.exit()
 
-        pygame.display.update()
-
+        # draw AI players
+        for aip in self._field.ai_players:
+            pygame.draw.circle(self._window, self._color2, aip.position, aip.size)
+        
         # draw player 1
         pygame.draw.circle(self._window, self._color1, self.field.player.position, self.field.player.size)
         pygame.display.update()
+
+        # update display
+        pygame.display.update()
+
+        # timekeeping
         self._clock.tick(self._fps)
 
