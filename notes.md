@@ -54,25 +54,35 @@
 
 ### Pressing issues
 
-- Player motion using mouse
-- Eating
-- Growth
-- Respawns
+- **Player motion using mouse.** we are currently drawing all objects and filling the scree white
+- **Eating**
+- **Growth**
+- **Respawns**
 
 We now have a baby-game
 
 ### The goal
 
-- AI movement
-- AI response
-- Graphics
+- **fix the frame rate stuff**
+- **AI movement/response**
+  - Make it impossible to go out of bounds
+  - The player will have to corner the small, fast fish
+- player1 death/game over
+- bigger you are, the more you require to grow
+- spawn predators further away
 - Win/lose screen
 
 we now have a kids game
 
 ### Extra
 
+- Graphics
+  - Color by size
+  - Drawing images
+  - maybe pixel art style?
 - Obstacles
 - AI behavior diversity
 - Increasing difficulty
 - Different player models
+
+we now have a sick game
