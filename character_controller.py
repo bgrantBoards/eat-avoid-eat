@@ -1,12 +1,9 @@
 """
 Hungry Sharks game controller
 """
-import pygame, sys
-from pygame.locals import *
-from character import AIPlayer, Player
-from hungry_sharks_field import HungrySharksField
-from euclid3 import Vector2
 from abc import ABC, abstractmethod
+from euclid3 import Vector2
+import pygame
 
 class Controller(ABC):
     """
@@ -21,15 +18,7 @@ class Controller(ABC):
     """
     def __init__(self, field):
         self._field = field
-    
-    @property
-    def field(self):
-        """
-        A property which returns the Hungry Sharks Controller's private _field
-        attribute.
-        """
-        return self._field
-    
+
     @abstractmethod
     def move(self):
         """
@@ -54,7 +43,7 @@ class PlayerVelocityController(Controller):
     def move(self):
         # get mouse pos
         mouse_pos = pygame.mouse.get_pos()
-        self._field.player.move_toward_point(mouse_pos, velocity_scaling=True, dt=1/self._fps)
+        self._field.player.move_toward_point(mouse_pos, velocity_scaling=False, timestep=1/self._fps)
 
 class AIVelocityController(Controller):
     """
@@ -67,23 +56,50 @@ class AIVelocityController(Controller):
         super().__init__(field)
 
         self._fps = fps
-    
-    def wander(self, aip):
 
+    def avoid_walls(self, aip):
+        """
+        Velocity controller that steers an AI player away from window boundaries
+        so that no player ever goes off-screen.
+
+        Args:
+            aip (AIPlayer): the AI Player that gets controlled.
+        """
+        # identify the direction of the wall to avoid
+        dist_to_walls = self._field.get_dist_to_walls(aip)
+        closest_wall_id = dist_to_walls.index(min(dist_to_walls))
+        wall_cases = {0: Vector2(0, 1),
+                      1: Vector2(0, 1),
+                      2: Vector2(1, 0),
+                      3: Vector2(1, 0)}
+        wall_direction = wall_cases[closest_wall_id]
+
+        # turn parallel to the wall to avoid going out of bounds
+        aip.move_parallel(wall_direction, timestep=1/self._fps)
+
+    def wander(self, aip):
+        """
+        Defines AI wandering behavior
+        """
         pass
 
     def attack(self, aip):
-        aip.move_toward_point(self._field.player.position, dt=1/self._fps)
-        pass
+        """
+        Defines AI attacking behavior
+        """
+        aip.move_toward_point(self._field.player.position, timestep=1/self._fps)
 
     def flee(self, aip):
-        aip.move_away_from_point(self._field.player.position, dt=1/self._fps)
-        pass
-    
+        """
+        Defines AI fleeing behavior
+        """
+        aip.move_away_from_point(self._field.player.position, timestep=1/self._fps)
+
     behavior_switcher = {
         "wander": wander,
         "attack": attack,
-        "flee": flee
+        "flee": flee,
+        "avoid walls": avoid_walls
     }
 
     def move(self):
@@ -94,4 +110,3 @@ class AIVelocityController(Controller):
         for aip in self._field.characters:
             movement_function = self.behavior_switcher[aip.behavior_state]
             movement_function(self, aip)
-    

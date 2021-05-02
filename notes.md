@@ -31,7 +31,7 @@
 
 ## Character Class
 
-### Every character has:
+### Every character has
 
 - Attributes
   - Size
@@ -40,17 +40,17 @@
     - Velocity
     - Maybe Acceleration
 
-### AI character inherits from Character and has:
+### AI character inherits from Character and has
 
 - Attributes
   - Observation radius
   - Behavior pattern
 
-### Player's Character inherits from Character and has:
+### Player's Character inherits from Character and has
 
 - Attributes
   
-# Course of Action
+## Course of Action
 
 ### Pressing issues
 

@@ -1,12 +1,15 @@
 """
 Hungry Sharks game view
 """
-from character import AIPlayer, Player
-from hungry_sharks_field import HungrySharksField
 from abc import ABC, abstractmethod
-import pygame, sys
-from pygame.locals import *
-from euclid3 import Vector2
+import sys
+from colorsys import hsv_to_rgb
+import pygame
+from pygame.locals import QUIT
+
+
+def hsv2rgb(h,s,v):
+    return tuple(round(i * 255) for i in hsv_to_rgb(h,s,v))
 
 
 class HungrySharksView(ABC):
@@ -25,11 +28,14 @@ class HungrySharksView(ABC):
             field: Hungry Sharks game field representation
         """
         self._field = field
-    
+
     @property
     def field(self):
+        """
+        Returns private attribute _field
+        """
         return self._field
-    
+
     @abstractmethod
     def draw(self):
         """
@@ -47,8 +53,6 @@ class PyGameView(HungrySharksView):
     Attributes:
         _field: stores the game field
         _window: a pygame window used to draw on
-        _color1: player's color
-        _color2: AI Players' color
         _clock: pygame clock
     """
     colors = {
@@ -59,11 +63,7 @@ class PyGameView(HungrySharksView):
     }
 
     def __init__(self, field):
-        self._field = field
-
-        # pygame.display.set_mode((width_of_window,height_of_window))
-        self._color1 = (140, 255, 255)
-        self._color2 = (0, 0, 0)
+        super().__init__(field)
 
         # Initialize a pygame window and add it as an attribute
         pygame.init()
@@ -80,8 +80,16 @@ class PyGameView(HungrySharksView):
         """
         return self._fps
 
-    def draw_character(self, char, color):
-        pygame.draw.circle(self._window, color, char.position, char.size)
+    def draw_character_as_circle(self, char, color):
+        """
+        Draws a character as a circle on the pygame screen.
+
+        Args:
+            char (Character): Character instance to be drawn on screen
+            color (tuple of integers): RGB color tuple
+        """
+        char_color = hsv2rgb(char.size/10,1.0,0.75)
+        pygame.draw.circle(self._window, char_color, char.position, 30)
 
     def draw(self):
         # VERY IMPORTANT but maybe belongs in the game loop?
@@ -90,18 +98,19 @@ class PyGameView(HungrySharksView):
                 pygame.quit()
                 sys.exit()
 
-        # draw Player 1
-        self.draw_character(self._field.player, self.colors["blue"])
 
         # draw AI players
         for aip in self._field.ai_players:
-            pygame.draw.circle(self._window, self._color2, aip.position, aip.size)
-        
+            self.draw_character_as_circle(aip, self.colors["red"])
 
-        # growth progress bar
-        # pygame.draw.rect(self._window, self.colors["gray"], pygame.Rect(0, 0, 20, self.field.window_y), border_top_right_radius=5, border_bottom_right_radius=5)
-        health_progress = self._field.player._growth_progress
-        pygame.draw.rect(self._window, self.colors["gray"], pygame.Rect(0, 0, 20, self.field.window_y * health_progress/100), border_top_right_radius=5, border_bottom_right_radius=5)
+        # draw Player 1
+        self.draw_character_as_circle(self._field.player, self.colors["blue"])
+
+        # draw growth progress bar
+        health_progress = self._field.player.growth_progress
+        pygame.draw.rect(self._window, self.colors["gray"],\
+            pygame.Rect(0, 0, 20, self.field.window_y * health_progress/100),\
+            border_top_right_radius=5, border_bottom_right_radius=5)
 
         # update display
         pygame.display.update()
@@ -109,4 +118,3 @@ class PyGameView(HungrySharksView):
 
         # timekeeping
         self._clock.tick(self._fps)
-
