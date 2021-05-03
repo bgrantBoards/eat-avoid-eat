@@ -10,12 +10,12 @@ def main():
     """
     Runs the game of Hungry Sharks
     """
-    field = HungrySharksField(1200, 600, 1)
+    field = HungrySharksField(1200, 600, 10)
     view = PyGameView(field)
     player_controller = PlayerVelocityController(field, fps=view.fps)
     ai_controller = AIVelocityController(field, fps=view.fps)
 
-    while True:
+    while not field.game_end:
         # view
         view.draw()
 
@@ -25,6 +25,8 @@ def main():
 
         # update model to valid state
         field.update()
+    
+    print(field.game_end)
 
 
 if __name__ == "__main__":

@@ -4,6 +4,17 @@ Hungry Sharks game controller
 from abc import ABC, abstractmethod
 from euclid3 import Vector2
 import pygame
+import random
+import math
+import time
+
+def get_new_heading(curr_heading, degree_range):
+    rand_angle = random.uniform(-degree_range/2, degree_range/2)
+    new_x = math.cos(rand_angle)*curr_heading.x - math.sin(rand_angle)*curr_heading.y
+    new_y = math.sin(rand_angle)*curr_heading.x + math.cos(rand_angle)*curr_heading.y
+
+    return Vector2(new_x, new_y)
+
 
 class Controller(ABC):
     """
@@ -72,16 +83,30 @@ class AIVelocityController(Controller):
                       1: Vector2(0, 1),
                       2: Vector2(1, 0),
                       3: Vector2(1, 0)}
-        wall_direction = wall_cases[closest_wall_id]
+        wall_direction = wall_cases[closest_wall_id] # [1,0] or [0,1]
 
         # turn parallel to the wall to avoid going out of bounds
-        aip.move_parallel(wall_direction, timestep=1/self._fps)
+        # aip.move_parallel(wall_direction, timestep=1/self._fps)
+        aip.bounce(wall_direction, timestep=1/self._fps)
 
     def wander(self, aip):
         """
         Defines AI wandering behavior
         """
-        pass
+        current_time = time.time()
+        elapsed_time = current_time - aip._prev_tick
+        
+        aip._clock += elapsed_time
+
+        if aip._clock > 0.2:
+            degree_range = math.pi/6
+            new_heading = get_new_heading(aip.velocity, degree_range)
+            aip.velocity = new_heading
+            aip._clock = 0
+        else:
+            aip.update_pos(1/self._fps)
+        
+        aip._prev_tick = current_time
 
     def attack(self, aip):
         """

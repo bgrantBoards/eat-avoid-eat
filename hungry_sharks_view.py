@@ -106,11 +106,11 @@ class PyGameView(HungrySharksView):
         # draw Player 1
         self.draw_character_as_circle(self._field.player, self.colors["blue"])
 
-        # draw growth progress bar
-        health_progress = self._field.player.growth_progress
-        pygame.draw.rect(self._window, self.colors["gray"],\
-            pygame.Rect(0, 0, 20, self.field.window_y * health_progress/100),\
-            border_top_right_radius=5, border_bottom_right_radius=5)
+        # # draw growth progress bar
+        # health_progress = self._field.player.growth_progress
+        # pygame.draw.rect(self._window, self.colors["gray"],\
+        #     pygame.Rect(0, 0, 20, self.field.window_y * health_progress/100),\
+        #     border_top_right_radius=5, border_bottom_right_radius=5)
 
         # update display
         pygame.display.update()

@@ -61,7 +61,7 @@ class Character():
         Returns:
             [float]: Character's max speed
         """
-        max_speed_scale = 1
+        max_speed_scale = 2
         return self.speed_from_size[self.size] * max_speed_scale
 
     def grow(self, factor):
@@ -156,6 +156,19 @@ class Character():
         # move
         self.update_pos(timestep)
     
+    def bounce(self, wall_direction, timestep=1/30):
+        """
+        Reflects character's velocity to bounce off of a wall.
+
+        Args:
+            wall_direction (Vector2): defines the orientation of the wall.
+            timestep (float): timestep (1/frame rate). Defaults to 1/30.
+        """
+        self.velocity = self.velocity.reflect(Vector2(wall_direction.y, wall_direction.x))
+        self.update_pos(timestep)
+
+        # self.velocity = self.velocity.reflect(wall_direction)
+    
     def will_collide_with_wall(self, wall_direction):
         """
         Returns True if the character is on a trajectory to hit a specific wall.
@@ -191,6 +204,8 @@ class AIPlayer(Character):
         _fov (int): radius at which the AI player can react to other players.
         behavior_state (string): defines how the AI controller moves the AI
             player.
+        _clock: keeps track of time for random motion switching
+        _prev_tick: keeps track of the previous system time
     """
     def __init__(self, size, position, velocity, behavior_state):
         """
@@ -199,6 +214,8 @@ class AIPlayer(Character):
         super().__init__(size, position)
         self.velocity = velocity
         self.behavior_state = behavior_state
+        self._clock = 0
+        self._prev_tick = 0
 
     fov_from_size = {
         1: 50,

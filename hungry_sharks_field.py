@@ -30,9 +30,8 @@ class HungrySharksField():
         characters: a list of AI characters currently in the game
         _max_nemeses: the maximum number of AI predators allowed on screen at a
         time
-
-        To Do:
-        ? _intensity
+        game_end: a string that is empty as long as the player has not won
+        or lost the game and is "win" or "lose" when the game ends
     """
     def __init__(self, window_x, window_y, num_characters):
         # window size parameters
@@ -47,6 +46,7 @@ class HungrySharksField():
         for _ in range(num_characters):
             self.spawn_new_ai(1)
         self._max_nemeses = 2
+        self.game_end = ""
 
     @property
     def ai_players(self):
@@ -91,9 +91,11 @@ class HungrySharksField():
         Args:
             size (int): size of the new player.
         """
-        pos = random_vector2(0, self.window_x, 0, self.window_y)
-        vel = random_vector2(5, 10, 5, 10)
-        self.characters.append(AIPlayer(size, pos, vel, "wander"))
+        pos = random_vector2(50, self.window_x - 50, 50, self.window_y - 50)
+        vel = Vector2(0,0)
+        aip = AIPlayer(size, pos, vel, "wander")
+        aip.velocity = random_vector2(-10, 10, -10, 10).normalize() * aip.max_speed()
+        self.characters.append(aip)
     
     def get_num_enemies(self):
         """
@@ -139,33 +141,34 @@ class HungrySharksField():
         Takes care of player-to-player interations: collision detection,
         eating, growing, and respawn of AI players.
         """
-        # Handle Player1 Eating AI players
+        # Handle Player1 Eating AI players and winning/losing the game
         colliders = self.player_collisions()
         for aip in colliders:
-            # grow the player
-            growth_factor = 0.5 * aip.size / self.player.size * 100
-            self.player.grow(growth_factor)
-            # remove the collider
-            self.ai_players.remove(aip)
-            # spawn a new AI player that is smaller or one size bigger than player
-            self.spawn_new_ai(randrange(1, self.player.size + 5))
-
+            # determine if the player won or lost the match:
+            if aip.size > self.player.size:
+                # Player loses the game!
+                self.game_end = "lose"
+            elif aip.size < self.player.size:
+                # grow the player
+                growth_factor = 0.5 * aip.size / self.player.size * 100
+                self.player.grow(growth_factor)
+                # remove the collider
+                self.ai_players.remove(aip)
+                # spawn a new AI player that is smaller or one size bigger than player
+                self.spawn_new_ai(randrange(1, self.player.size + 5))
+            if self.player.size > 9:
+                self.game_end = "win"
+        
         # update AI Player behavior states
         for aip in self.characters:
-            # # avoid walls:
-            # boundary_margin = 20
-            # in_danger_zone = min(self.get_dist_to_walls(aip)) <= boundary_margin
-            # if in_danger_zone:
-            #     closest_wall_direction = self.get_closest_wall_direction(aip)
-            #     if aip.will_collide_with_wall(closest_wall_direction):
-            #         aip.behavior_state = "avoid walls"
-            #         break
-
-            # keep players in bounds
-            boundary_margin = 20
+            # avoid walls:
+            boundary_margin = 30
             in_danger_zone = min(self.get_dist_to_walls(aip)) <= boundary_margin
             if in_danger_zone:
-                aip.move
+                closest_wall_direction = self.get_closest_wall_direction(aip)
+                if aip.will_collide_with_wall(closest_wall_direction):
+                    aip.behavior_state = "avoid walls"
+                    break
 
             # interact with player 1:
             dist_to_player = (aip.position - self.player.position).magnitude()
