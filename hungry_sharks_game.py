@@ -15,6 +15,7 @@ def main():
     player_controller = PlayerVelocityController(field, fps=view.fps)
     ai_controller = AIVelocityController(field, fps=view.fps)
 
+    # main game loop
     while not field.game_end:
         # view
         view.draw()
@@ -25,8 +26,14 @@ def main():
 
         # update model to valid state
         field.update()
-    
-    print(field.game_end)
+
+    # win and lose screen
+    end_screen_switcher = {
+        "win" : view.win_screen,
+        "lose" : view.lose_screen
+    }
+
+    end_screen_switcher[field.game_end]()
 
 
 if __name__ == "__main__":

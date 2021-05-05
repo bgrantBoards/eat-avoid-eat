@@ -44,16 +44,10 @@ class HungrySharksField():
         # create AI players
         self.characters = []
         for _ in range(num_characters):
-            self.spawn_new_ai(1)
+            new_aip = self.get_new_ai(1)
+            self.spawn_new_ai(new_aip)
         self._max_nemeses = 2
         self.game_end = ""
-
-    @property
-    def ai_players(self):
-        """
-        Returns private attribute _characters
-        """
-        return self.characters
 
     def check_collision(self, char1, char2):
         """
@@ -84,9 +78,9 @@ class HungrySharksField():
 
         return collisions
 
-    def spawn_new_ai(self, size):
+    def get_new_ai(self, size):
         """
-        Adds a new AI player to the game at a random location.
+        Returns a new AI player with a random location.
 
         Args:
             size (int): size of the new player.
@@ -95,6 +89,9 @@ class HungrySharksField():
         vel = Vector2(0,0)
         aip = AIPlayer(size, pos, vel, "wander")
         aip.velocity = random_vector2(-10, 10, -10, 10).normalize() * aip.max_speed()
+        return aip
+    
+    def spawn_new_ai(self, aip):
         self.characters.append(aip)
     
     def get_num_enemies(self):
@@ -141,6 +138,30 @@ class HungrySharksField():
         Takes care of player-to-player interations: collision detection,
         eating, growing, and respawn of AI players.
         """
+        
+        # update AI Player behavior states
+        for aip in self.characters:
+            # avoid walls:
+            boundary_margin = 25
+            in_danger_zone = min(self.get_dist_to_walls(aip)) <= boundary_margin
+            if in_danger_zone:
+                closest_wall_direction = self.get_closest_wall_direction(aip)
+                if aip.will_collide_with_wall(closest_wall_direction):
+                    aip.behavior_state = "avoid walls"
+                continue
+
+            # interact with player 1:
+            dist_to_player = (aip.position - self.player.position).magnitude()
+            if dist_to_player < aip.fov():
+                # bigger AIs attack, smaller ones flee, and equal sized
+                # ones keep wandering
+                if aip.size > self.player.size:
+                    aip.behavior_state = "attack"
+                if aip.size < self.player.size:
+                    aip.behavior_state = "flee"
+            else:
+                aip.behavior_state = "wander"
+        
         # Handle Player1 Eating AI players and winning/losing the game
         colliders = self.player_collisions()
         for aip in colliders:
@@ -153,31 +174,13 @@ class HungrySharksField():
                 growth_factor = 0.5 * aip.size / self.player.size * 100
                 self.player.grow(growth_factor)
                 # remove the collider
-                self.ai_players.remove(aip)
+                self.characters.remove(aip)
                 # spawn a new AI player that is smaller or one size bigger than player
-                self.spawn_new_ai(randrange(1, self.player.size + 5))
+                if self.get_num_enemies() < 2:
+                    new_aip = self.get_new_ai(randrange(max(1, self.player.size - 2), min(self.player.size + 3, 10)))
+                else:
+                    new_aip = self.get_new_ai(randrange(max(1, self.player.size - 2), self.player.size))
+                new_aip.relocate(self.player, self.window_x, self.window_y)
+                self.spawn_new_ai(new_aip)
             if self.player.size > 9:
                 self.game_end = "win"
-        
-        # update AI Player behavior states
-        for aip in self.characters:
-            # avoid walls:
-            boundary_margin = 30
-            in_danger_zone = min(self.get_dist_to_walls(aip)) <= boundary_margin
-            if in_danger_zone:
-                closest_wall_direction = self.get_closest_wall_direction(aip)
-                if aip.will_collide_with_wall(closest_wall_direction):
-                    aip.behavior_state = "avoid walls"
-                    break
-
-            # interact with player 1:
-            dist_to_player = (aip.position - self.player.position).magnitude()
-            if dist_to_player < aip.fov():
-                # bigger AIs attack, smaller ones flee, and equal sized
-                # ones keep wandering
-                if aip.size > self.player.size:
-                    aip.behavior_state = "attack"
-                if aip.size < self.player.size:
-                    aip.behavior_state = "flee"
-            if dist_to_player > aip.fov():
-                aip.behavior_state = "wander"

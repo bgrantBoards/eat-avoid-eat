@@ -190,8 +190,29 @@ class Player(Character):
     Hungry Sharks player.
 
     Inherits from Character.
+
+    Attributes:
+        _boost (bool): determines whether the player is currently boosting.
     """
-    pass
+    def __init__(self, size, position):
+        """
+        Create a new AIPlayer with default or custom parameters.
+        """
+        super().__init__(size, position)
+        self._boost = False
+    
+    def max_speed(self):
+        """
+        Returns the player's boosted or un-boosted max speed.
+
+        Returns:
+            [float]: Character's max speed
+        """
+        boost_scale = max(1.5*self._boost, 1)
+        max_speed_scale = 2
+        return self.speed_from_size[self.size] * max_speed_scale * boost_scale
+    
+
 
 
 class AIPlayer(Character):
@@ -239,3 +260,18 @@ class AIPlayer(Character):
         """
         scale_factor = 3
         return self.fov_from_size[self.size] * scale_factor
+    
+    def relocate(self, player, window_x, window_y):
+        """
+        Move the AI Player away from player (safely).
+
+        Args:
+            player (Player): player
+        """
+        player_to_aip = self.position - player.position
+
+        if player_to_aip.magnitude() < self.fov() + 50:
+            window_center = Vector2(window_x/2, window_y/2)
+            player_to_window_center = window_center - player.position
+
+            safe_pos = player.position + player_to_window_center.normalize() * self.fov() * 1.25

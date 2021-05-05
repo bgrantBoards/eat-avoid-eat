@@ -52,9 +52,16 @@ class PlayerVelocityController(Controller):
         self._fps = fps
 
     def move(self):
-        # get mouse pos
+        # move toward mouse
         mouse_pos = pygame.mouse.get_pos()
         self._field.player.move_toward_point(mouse_pos, velocity_scaling=False, timestep=1/self._fps)
+
+        # speed boosting
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_SPACE]:
+            self._field.player._boost = True
+        else:
+            self._field.player._boost = False
 
 class AIVelocityController(Controller):
     """

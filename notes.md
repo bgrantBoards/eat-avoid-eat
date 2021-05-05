@@ -65,24 +65,34 @@ We now have a baby-game
 
 - **fix the frame rate stuff**
 - **AI movement/response**
-  - **Make it impossible to go out of bounds** (buggy but working)
+  - **Make it impossible to go out of bounds**
   - **The player will have to corner the small, fast fish**
 - **bigger you are, the more you require to grow**
-  - improve this
-- spawn predators further away
-- Win/lose screen
+  - **improve this**
+- **Win/lose screen**
+  - **(win/ lose detection)**
+- **spawn predators further away**
+- **boost**
+  - this should take up health when you have it activated
+  - cannot boost if health = 0
 
 we now have a kids game
 
 ### Extra
 
-- Graphics
+- **Graphics**
   - **Color by size**
-  - Drawing images
-  - maybe pixel art style?
+  - **Drawing images**
+
 - Obstacles
 - AI behavior diversity
-- Increasing difficulty
+- **Increasing difficulty**
 - Different player models
 
 we now have a sick game
+
+## Bugs
+
+- Wall spanking
+- Enemies spawn too close
+- Fish sizes
