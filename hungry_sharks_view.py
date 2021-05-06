@@ -3,29 +3,36 @@ Hungry Sharks game view
 """
 from abc import ABC, abstractmethod
 import sys
+import math
 from colorsys import hsv_to_rgb
 import pygame
 from pygame.locals import QUIT
 from euclid3 import Vector2
-import math
 
 
-def angle_from_x_axis(v):
+def angle_from_x_axis(vector):
     """
-    Return the angle of the vector v with respect to the x axis.
+    Return the angle of the vector with respect to the x axis.
 
     Args:
-        v (Vector2): the vector
+        vector (Vector2): the vector
     """
-    try:
-        # return -math.degrees(math.atan(v.y/v.x))
-        return -math.degrees(math.atan2(v.y, v.x))
-    except:
-        return 0
+    return -math.degrees(math.atan2(vector.y, vector.x))
 
 
-def hsv2rgb(h,s,v):
-    return tuple(round(i * 255) for i in hsv_to_rgb(h,s,v))
+def hsv2rgb(hue, saturation, vibrance):
+    """
+    Converts an HSV color to an RGB color.
+
+    Args:
+        hue (float): hue value
+        saturation (float): saturation value
+        vibrance (float): vibrance value
+
+    Returns:
+        3-tuple of integers: RGB color
+    """
+    return tuple(round(i * 255) for i in hsv_to_rgb(hue,saturation,vibrance))
 
 
 class HungrySharksView(ABC):
@@ -94,20 +101,23 @@ class PyGameView(HungrySharksView):
         # font stuff for displaying text
         pygame.font.init()
         self._font = pygame.font.SysFont('Georgia', 50)
-    
+
     scale_fac = 1
     images_from_size = {
-        1 : (pygame.image.load("images/minnow.gif"), scale_fac),
+        1 : (pygame.image.load("images/minnow.gif"), .75),
         2 : (pygame.image.load("images/gold_fish.png"), scale_fac),
         3 : (pygame.image.load("images/clown_fish.png"), scale_fac),
         4 : (pygame.image.load("images/cod.png"), scale_fac),
-        5 : (pygame.image.load("images/small_shark.png"), 2.5),
-        6 : (pygame.image.load("images/tuna.png"), 2.75),
+        5 : (pygame.image.load("images/small_shark.png"), 2.25),
+        6 : (pygame.image.load("images/tuna.png"), 2.25),
         7 : (pygame.image.load("images/swordfish.png"), 3.3),
-        8 : (pygame.image.load("images/hammerhead.png"), scale_fac, 4),
-        9 : (pygame.image.load("images/great_white.png"), scale_fac),
-        10 : (pygame.image.load("images/whale_shark.png"), scale_fac),
+        8 : (pygame.image.load("images/hammerhead.png"), 2.75),
+        9 : (pygame.image.load("images/great_white.png"), 6),
+        10 : (pygame.image.load("images/whale_shark.png"), 4),
     }
+    game_background_image = pygame.image.load("images/background.png")
+    win_background_image = pygame.image.load("images/win_background.png")
+    lose_background_image = pygame.image.load("images/lose_background.png")
 
     @property
     def fps(self):
@@ -116,7 +126,7 @@ class PyGameView(HungrySharksView):
         """
         return self._fps
 
-    def draw_character_as_circle(self, char, color, is_player=False):
+    def draw_character_as_circle(self, char, is_player=False):
         """
         Draws a character as a circle on the pygame screen.
 
@@ -126,18 +136,14 @@ class PyGameView(HungrySharksView):
         """
         char_color = hsv2rgb(char.size/10,1.0,0.75)
         pygame.draw.circle(self._window, char_color, char.position, 30)
-        # if is_player:
-        #     border_color = self.colors["gold"]
-        # else:
-        #     border_color = self.colors["black"]
-        # pygame.draw.circle(self._window, border_color, char.position, 30, width = 1)
         if is_player:
             border_thick = 3
         else:
             border_thick = 1
-        pygame.draw.circle(self._window, self.colors["black"], char.position, 30, width = border_thick)
-    
-    def draw_character_as_img(self, char, is_player=False):
+        pygame.draw.circle(self._window, self.colors["black"], char.position,\
+            30, width = border_thick)
+
+    def draw_character_as_img(self, char):
         """
         Draws a character with an appropriate image on the pygame screen.
 
@@ -153,7 +159,6 @@ class PyGameView(HungrySharksView):
 
         # rotate and scale image
         char_angle = angle_from_x_axis(char.velocity)
-        print(char_angle)
         if char_angle < -90 or char_angle > 90:
             img = pygame.transform.flip(img, False, True)
         img = pygame.transform.rotate(img, char_angle)
@@ -179,19 +184,20 @@ class PyGameView(HungrySharksView):
         # self.draw_character_as_circle(self._field.player, self.colors["blue"], is_player=True)
         self.draw_character_as_img(self._field.player)
 
-        # # draw growth progress bar
-        # health_progress = self._field.player.growth_progress
-        # pygame.draw.rect(self._window, self.colors["gray"],\
-        #     pygame.Rect(0, 0, 20, self.field.window_y * health_progress/100),\
-        #     border_top_right_radius=5, border_bottom_right_radius=5)
+        # draw growth progress bar
+        health_progress = self._field.player.growth_progress
+        pygame.draw.rect(self._window, self.colors["gray"],\
+            pygame.Rect(0, 0, 20, self.field.window_y * health_progress/100),\
+            border_top_right_radius=5, border_bottom_right_radius=5)
 
         # update display
         pygame.display.update()
-        self._window.fill(self.colors["white"])
+        # self._window.fill(self.colors["white"])
+        self._window.blit(self.game_background_image, Vector2(0,0))
 
         # timekeeping
         self._clock.tick(self._fps)
-    
+
     def display_text_screen(self, text):
         """
         Displays a white screen with text in the center.
@@ -204,35 +210,48 @@ class PyGameView(HungrySharksView):
         # This creates a new object on which you can call the render method.
         textsurface = self._font.render(text, False, (0, 0, 0))
 
-        # This creates a new surface with text already drawn onto it. At the end you can just blit the text surface onto your main screen.
+        # This creates a new surface with text already drawn onto it.
+        # At the end you can just blit the text surface onto your main screen.
         self._window.blit(textsurface,(self.field.window_x/2,self.field.window_y/2))
+
+        pygame.display.update()
+    
+    def display_img_screen(self, img):
+        """
+        Displays an image filling the whole screen.
+
+        Args:
+            img (Pygame Image): the image
+        """
+        img = pygame.transform.scale(img, (self._field.window_x, self._field.window_y))
+        self._window.blit(img, Vector2(0,0))
 
         pygame.display.update()
 
     def win_screen(self):
-        self.display_text_screen("you win :-)")
+        """
+        Display win screen and quit game on user input.
+        """
+        self.display_img_screen(self.win_background_image)
 
         done = False
         while not done:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     done = True
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE:
-                        done = True
 
             self._clock.tick(self._fps)
-    
+
     def lose_screen(self):
-        self.display_text_screen("you lose :-(")
+        """
+        Display lose screen and quit game on user input.
+        """
+        self.display_img_screen(self.lose_background_image)
 
         done = False
         while not done:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     done = True
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_SPACE:
-                        done = True
 
             self._clock.tick(self._fps)

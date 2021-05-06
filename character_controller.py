@@ -2,13 +2,25 @@
 Hungry Sharks game controller
 """
 from abc import ABC, abstractmethod
-from euclid3 import Vector2
-import pygame
 import random
 import math
 import time
+import pygame
+from euclid3 import Vector2
 
 def get_new_heading(curr_heading, degree_range):
+    """
+    Generate a random heading within a range of angles around the current
+    heading
+
+    Args:
+        curr_heading (Vector2): the current heading
+        degree_range (Vector2): angular width of slice around the current
+            heading within which a new heading is chosen
+
+    Returns:
+        Vector2: new heading
+    """
     rand_angle = random.uniform(-degree_range/2, degree_range/2)
     new_x = math.cos(rand_angle)*curr_heading.x - math.sin(rand_angle)*curr_heading.y
     new_y = math.sin(rand_angle)*curr_heading.x + math.cos(rand_angle)*curr_heading.y
@@ -54,14 +66,15 @@ class PlayerVelocityController(Controller):
     def move(self):
         # move toward mouse
         mouse_pos = pygame.mouse.get_pos()
-        self._field.player.move_toward_point(mouse_pos, velocity_scaling=False, timestep=1/self._fps)
+        self._field.player.move_toward_point(mouse_pos, velocity_scaling=False,\
+            timestep=1/self._fps)
 
         # speed boosting
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE]:
-            self._field.player._boost = True
+            self._field.player.boost = True
         else:
-            self._field.player._boost = False
+            self._field.player.boost = False
 
 class AIVelocityController(Controller):
     """
@@ -101,19 +114,19 @@ class AIVelocityController(Controller):
         Defines AI wandering behavior
         """
         current_time = time.time()
-        elapsed_time = current_time - aip._prev_tick
-        
-        aip._clock += elapsed_time
+        elapsed_time = current_time - aip.prev_tick
 
-        if aip._clock > 0.2:
+        aip.clock += elapsed_time
+
+        if aip.clock > 0.2:
             degree_range = math.pi/6
             new_heading = get_new_heading(aip.velocity, degree_range)
             aip.velocity = new_heading
-            aip._clock = 0
+            aip.clock = 0
         else:
             aip.update_pos(1/self._fps)
-        
-        aip._prev_tick = current_time
+
+        aip.prev_tick = current_time
 
     def attack(self, aip):
         """

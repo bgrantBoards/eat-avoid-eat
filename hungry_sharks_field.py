@@ -1,7 +1,6 @@
 """
 Hungry Sharks playing field implementation.
 """
-import math
 from random import randrange
 from euclid3 import Vector2
 from character import Player, AIPlayer
@@ -20,6 +19,14 @@ def random_vector2(x_min, x_max, y_min, y_max):
         Vector2: random Vector2
     """
     return Vector2(randrange(x_min, x_max), randrange(y_min, y_max))
+
+def check_collision(char1, char2):
+    """
+    Checks whether a pair of characters are colliding with one another.
+    Returns True if they are and False otherwise.
+    """
+    distance = abs(char1.position - char2.position)
+    return distance < 30
 
 class HungrySharksField():
     """
@@ -49,17 +56,6 @@ class HungrySharksField():
         self._max_nemeses = 2
         self.game_end = ""
 
-    def check_collision(self, char1, char2):
-        """
-        Checks whether a pair of characters are colliding with one another.
-        Returns True if they are and False otherwise.
-        """
-        distance = abs(char1.position - char2.position)
-        r_greater = max(char1.size, char2.size)
-        r_lesser = min(char1.size, char2.size)
-        # return distance < r_greater - r_lesser + 2
-        return distance < 30
-
     def player_collisions(self):
         """
         Returns any AIPlayers which the player is colliding with.
@@ -73,7 +69,7 @@ class HungrySharksField():
         # check each AIPlayer against player1.
         # If they collide, add the AIPlayer to collisions
         for char in self.characters:
-            if self.check_collision(self.player, char):
+            if check_collision(self.player, char):
                 collisions.append(char)
 
         return collisions
@@ -90,10 +86,16 @@ class HungrySharksField():
         aip = AIPlayer(size, pos, vel, "wander")
         aip.velocity = random_vector2(-10, 10, -10, 10).normalize() * aip.max_speed()
         return aip
-    
+
     def spawn_new_ai(self, aip):
+        """
+        Add an AI character to the game.
+
+        Args:
+            aip (AIPlayer): the aip to be spawned in.
+        """
         self.characters.append(aip)
-    
+
     def get_num_enemies(self):
         """
         Returns the number of AI players in the game larger than Player 1.
@@ -107,7 +109,7 @@ class HungrySharksField():
 
         Args:
             char (Character): character to calculate wall distances for
-        
+
         Returns:
             (list of floats): distances to walls in [lef, right, top, bottom]
             form
@@ -116,7 +118,7 @@ class HungrySharksField():
                 self.window_x - char.position.x,
                 char.position.y,
                 self.window_y - char.position.y]
-    
+
     def get_closest_wall_direction(self, char):
         """
         Returns the "direction" of the closest wall to a character, a unit
@@ -133,13 +135,10 @@ class HungrySharksField():
                       3: Vector2(1, 0)}
         return wall_cases[closest_wall_id]
 
-    def update(self):
+    def update_ai_behaviors(self):
         """
-        Takes care of player-to-player interations: collision detection,
-        eating, growing, and respawn of AI players.
+        Checks the state of the field and updates ai players to behave correctly
         """
-        
-        # update AI Player behavior states
         for aip in self.characters:
             # avoid walls:
             boundary_margin = 25
@@ -161,7 +160,12 @@ class HungrySharksField():
                     aip.behavior_state = "flee"
             else:
                 aip.behavior_state = "wander"
-        
+
+    def handle_eating_and_win_lose(self):
+        """
+        Checks state of the field and updates players when an eating event
+        occurs.
+        """
         # Handle Player1 Eating AI players and winning/losing the game
         colliders = self.player_collisions()
         for aip in colliders:
@@ -177,10 +181,22 @@ class HungrySharksField():
                 self.characters.remove(aip)
                 # spawn a new AI player that is smaller or one size bigger than player
                 if self.get_num_enemies() < 2:
-                    new_aip = self.get_new_ai(randrange(max(1, self.player.size - 2), min(self.player.size + 3, 10)))
+                    new_aip = self.get_new_ai(randrange(\
+                        max(1, self.player.size - 2),\
+                        min(self.player.size + 3, 10)))
                 else:
-                    new_aip = self.get_new_ai(randrange(max(1, self.player.size - 2), self.player.size))
+                    new_aip = self.get_new_ai(randrange(\
+                        max(1, self.player.size - 2),\
+                        self.player.size))
                 new_aip.relocate(self.player, self.window_x, self.window_y)
                 self.spawn_new_ai(new_aip)
-            if self.player.size > 9:
+            if self.player.size > 10:
                 self.game_end = "win"
+
+    def update(self):
+        """
+        Takes care of player-to-player interations: collision detection,
+        eating, growing, and respawn of AI players.
+        """
+        self.update_ai_behaviors()
+        self.handle_eating_and_win_lose()

@@ -138,7 +138,7 @@ class Character():
 
         # update position
         self.update_pos(timestep)
-    
+
     def move_parallel(self, direction, timestep=1/30):
         """
         Update velocity to move parallel with a direction vector.
@@ -155,7 +155,7 @@ class Character():
 
         # move
         self.update_pos(timestep)
-    
+
     def bounce(self, wall_direction, timestep=1/30):
         """
         Reflects character's velocity to bounce off of a wall.
@@ -168,7 +168,7 @@ class Character():
         self.update_pos(timestep)
 
         # self.velocity = self.velocity.reflect(wall_direction)
-    
+
     def will_collide_with_wall(self, wall_direction):
         """
         Returns True if the character is on a trajectory to hit a specific wall.
@@ -192,15 +192,15 @@ class Player(Character):
     Inherits from Character.
 
     Attributes:
-        _boost (bool): determines whether the player is currently boosting.
+        boost (bool): determines whether the player is currently boosting.
     """
     def __init__(self, size, position):
         """
         Create a new AIPlayer with default or custom parameters.
         """
         super().__init__(size, position)
-        self._boost = False
-    
+        self.boost = False
+
     def max_speed(self):
         """
         Returns the player's boosted or un-boosted max speed.
@@ -208,11 +208,26 @@ class Player(Character):
         Returns:
             [float]: Character's max speed
         """
-        boost_scale = max(1.5*self._boost, 1)
         max_speed_scale = 2
+        boost_scale = 1
+        if self.boost & (self.growth_progress > 0):
+            boost_scale = (1.5*self.boost)
+
         return self.speed_from_size[self.size] * max_speed_scale * boost_scale
     
+    def update_pos(self, timestep):
+        """
+        Moves character's position based on velocity. Also decreases growth
+        progress when boosting
 
+        Arguments:
+            timestep: duration of the timestep over which the positional update
+            happens
+        """
+        growth_decay_rate = 15 # growth progress points / second
+        if self.boost:
+            self._growth_progress -= growth_decay_rate * timestep
+        self._position += self.velocity * timestep
 
 
 class AIPlayer(Character):
@@ -225,8 +240,8 @@ class AIPlayer(Character):
         _fov (int): radius at which the AI player can react to other players.
         behavior_state (string): defines how the AI controller moves the AI
             player.
-        _clock: keeps track of time for random motion switching
-        _prev_tick: keeps track of the previous system time
+        clock: keeps track of time for random motion switching
+        prev_tick: keeps track of the previous system time
     """
     def __init__(self, size, position, velocity, behavior_state):
         """
@@ -235,8 +250,9 @@ class AIPlayer(Character):
         super().__init__(size, position)
         self.velocity = velocity
         self.behavior_state = behavior_state
-        self._clock = 0
-        self._prev_tick = 0
+        self.clock = 0
+        self.prev_tick = 0
+
 
     fov_from_size = {
         1: 50,
@@ -260,7 +276,7 @@ class AIPlayer(Character):
         """
         scale_factor = 3
         return self.fov_from_size[self.size] * scale_factor
-    
+
     def relocate(self, player, window_x, window_y):
         """
         Move the AI Player away from player (safely).
@@ -275,3 +291,4 @@ class AIPlayer(Character):
             player_to_window_center = window_center - player.position
 
             safe_pos = player.position + player_to_window_center.normalize() * self.fov() * 1.25
+            self._position = safe_pos
