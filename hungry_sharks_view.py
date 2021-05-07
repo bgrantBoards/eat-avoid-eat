@@ -4,7 +4,6 @@ Hungry Sharks game view
 from abc import ABC, abstractmethod
 import sys
 import math
-from colorsys import hsv_to_rgb
 import pygame
 from pygame.locals import QUIT
 from euclid3 import Vector2
@@ -18,21 +17,6 @@ def angle_from_x_axis(vector):
         vector (Vector2): the vector
     """
     return -math.degrees(math.atan2(vector.y, vector.x))
-
-
-def hsv2rgb(hue, saturation, vibrance):
-    """
-    Converts an HSV color to an RGB color.
-
-    Args:
-        hue (float): hue value
-        saturation (float): saturation value
-        vibrance (float): vibrance value
-
-    Returns:
-        3-tuple of integers: RGB color
-    """
-    return tuple(round(i * 255) for i in hsv_to_rgb(hue,saturation,vibrance))
 
 
 class HungrySharksView(ABC):
@@ -85,6 +69,7 @@ class PyGameView(HungrySharksView):
         "gray": (119,136,153),
         "black": (0,0,0),
         "gold": (255, 215, 0),
+        "magenta": (255, 0, 255)
     }
 
     def __init__(self, field):
@@ -126,29 +111,14 @@ class PyGameView(HungrySharksView):
         """
         return self._fps
 
-    def draw_character_as_circle(self, char, is_player=False):
-        """
-        Draws a character as a circle on the pygame screen.
-
-        Args:
-            char (Character): Character instance to be drawn on screen
-            color (tuple of integers): RGB color tuple
-        """
-        char_color = hsv2rgb(char.size/10,1.0,0.75)
-        pygame.draw.circle(self._window, char_color, char.position, 30)
-        if is_player:
-            border_thick = 3
-        else:
-            border_thick = 1
-        pygame.draw.circle(self._window, self.colors["black"], char.position,\
-            30, width = border_thick)
-
-    def draw_character_as_img(self, char):
+    def draw_character_as_img(self, char, highlight = False):
         """
         Draws a character with an appropriate image on the pygame screen.
 
         Args:
             char (Character): Character instance to be drawn on screen
+            highlight (bool): Draws highlight on player if set to True. False
+                by default.
         """
         # pick correct image
         img = self.images_from_size[char.size][0]
@@ -167,6 +137,11 @@ class PyGameView(HungrySharksView):
         # Draw image
         self._window.blit(img, char.position - Vector2(rect.width/2, rect.height/2))
 
+        # draw highlight
+        if highlight:
+            pygame.draw.circle(self._window, self.colors["magenta"], char.position,\
+                3)
+
     def draw(self):
         # VERY IMPORTANT but maybe belongs in the game loop?
         for event in pygame.event.get():
@@ -182,7 +157,7 @@ class PyGameView(HungrySharksView):
 
         # draw Player 1
         # self.draw_character_as_circle(self._field.player, self.colors["blue"], is_player=True)
-        self.draw_character_as_img(self._field.player)
+        self.draw_character_as_img(self._field.player, highlight=True)
 
         # draw growth progress bar
         health_progress = self._field.player.growth_progress
@@ -215,7 +190,7 @@ class PyGameView(HungrySharksView):
         self._window.blit(textsurface,(self.field.window_x/2,self.field.window_y/2))
 
         pygame.display.update()
-    
+
     def display_img_screen(self, img):
         """
         Displays an image filling the whole screen.

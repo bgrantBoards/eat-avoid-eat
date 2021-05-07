@@ -72,7 +72,7 @@ class Character():
         self._growth_progress += factor
 
         if self._growth_progress > 100:
-            self._growth_progress = 0
+            self._growth_progress = 15
             self._size += 1
 
     def update_pos(self, timestep):
@@ -214,7 +214,7 @@ class Player(Character):
             boost_scale = (1.5*self.boost)
 
         return self.speed_from_size[self.size] * max_speed_scale * boost_scale
-    
+
     def update_pos(self, timestep):
         """
         Moves character's position based on velocity. Also decreases growth
