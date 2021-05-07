@@ -1,2 +1,2 @@
-# keanu-ben-softdes-final
+# EAE (Eat Avoid Eat)
 Making a game in Python
