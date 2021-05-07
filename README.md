@@ -1,4 +1,4 @@
-# EAE (Eat Avoid Eat)
+# EAE (Eat Avoid Eat)git
 
 An ocean-themed eat-to-evolve game in Python.
 
