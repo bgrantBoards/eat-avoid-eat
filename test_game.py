@@ -12,6 +12,9 @@ from euclid3 import Vector2
 # CHARACTER TESTING
 
 def test_character_grow():
+    """
+    Test that growing the player increases their growth progress.
+    """
     # create a size 1 player at a position
     test_player = Player(1, Vector2(100, 100))
 
@@ -33,6 +36,15 @@ UPDATE_POS_CASES = [
 
 @pytest.mark.parametrize("init_pos, velocity, timestep", UPDATE_POS_CASES)
 def test_update_position(init_pos, velocity, timestep):
+    """
+    Test that Character's update_pos method properly moves the character based
+    on velocity
+
+    Args:
+        init_pos (Vector2): initial position of character
+        velocity (Vector2): velocity of character
+        timestep (float): amount of time over which the velocity is applied
+    """
     # create a character
     test_char = Character(0, init_pos.copy())
     test_char.velocity = velocity
@@ -58,6 +70,14 @@ MOVE_XX_POINT_CASES = [
 
 @pytest.mark.parametrize("init_pos, point", MOVE_XX_POINT_CASES)
 def test_move_toward_point(init_pos, point):
+    """
+    Test that Character's move toward point method changes a character's
+    position correctly
+
+    Args:
+        init_pos (Vector2): initial position of character
+        point ([type]): target point of movement
+    """
     # create a character
     test_char = Character(1, init_pos.copy())
     test_char.move_toward_point(point)
@@ -72,6 +92,14 @@ def test_move_toward_point(init_pos, point):
 
 @pytest.mark.parametrize("init_pos, point", MOVE_XX_POINT_CASES)
 def test_move_away_from_point(init_pos, point):
+    """
+    Test that Character's move away from point method changes a character's
+    position correctly
+
+    Args:
+        init_pos (Vector2): initial position of character
+        point ([type]): target point of movement
+    """
     # create a character
     test_char = Character(1, init_pos.copy())
     test_char.move_toward_point(point)
@@ -86,6 +114,10 @@ def test_move_away_from_point(init_pos, point):
 
 
 def test_player_boost():
+    """
+    Test that when the player is boosting, their max_speed method behaves
+    appropriately
+    """
     # create a size 1 player at a position
     test_player = Player(2, Vector2(100, 100))
     test_player._growth_progress = 50
@@ -113,6 +145,13 @@ AIP_RELOCATE_CASES = [
 
 @pytest.mark.parametrize("aip_pos", AIP_RELOCATE_CASES)
 def test_aip_relocate(aip_pos):
+    """
+    Test that spawning an AI player and calling its relocate method appropriately
+    repositions it with respect to the player.
+
+    Args:
+        aip_pos (Vector2): aip spawn location
+    """
     # create characters
     player = Player(2, Vector2(0,0))
     aip = AIPlayer(7, aip_pos.copy(), Vector2(0,0), "")
@@ -133,6 +172,10 @@ def test_aip_relocate(aip_pos):
 # FIELD
 
 def test_eat():
+    """
+    Test that the eating method appropriately grows the player and removes the
+    AI player.
+    """
     # make field with player at center of window
     field = HungrySharksField(1000, 1000, 0)
     # spawn a smaller aip on top of the player
@@ -150,6 +193,9 @@ def test_eat():
 
 
 def test_win():
+    """
+    Test that the field can detect a win under appropriate conditions.
+    """
     # make field with player at center of window
     field = HungrySharksField(1000, 1000, 0)
 
@@ -167,6 +213,9 @@ LOSE_CASES = [i for i in range(1, 11)]
 
 @pytest.mark.parametrize("aip_size", LOSE_CASES)
 def test_lose(aip_size):
+    """
+    Test that the field can detect a loss under appropriate conditions.
+    """
     # make field with player at center of window
     field = HungrySharksField(1000, 1000, 0)
 
@@ -200,6 +249,15 @@ BEHAVIOR_STATE_CASES = [
 
 @pytest.mark.parametrize("aip_pos, aip_size, aip_velocity, correct_behavior", BEHAVIOR_STATE_CASES)
 def test_behavior_state_update(aip_pos, aip_size, aip_velocity, correct_behavior):
+    """
+    Test that the field can update an AI player's behavior state correctly.
+
+    Args:
+        aip_pos (Vector2): aip spawn location
+        aip_size (int): aip size
+        aip_velocity (Vector2): aip's velocity
+        correct_behavior (string): the valid behavior given the other conditions
+    """
     # make field with player at center of window
     field = HungrySharksField(1000, 1000, 0)
 
@@ -224,6 +282,13 @@ NUM_ENEMIES_CASES = [
 
 @pytest.mark.parametrize("num_enemies", NUM_ENEMIES_CASES)
 def test_num_enemies(num_enemies):
+    """
+    Test that the field can count the number of AI players who are larger than
+    the player.
+
+    Args:
+        num_enemies (int): number of enemies to spawn
+    """
     # make field with player at center of window
     field = HungrySharksField(1000, 1000, 0)
 
