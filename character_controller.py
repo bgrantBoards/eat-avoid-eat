@@ -105,8 +105,6 @@ class AIVelocityController(Controller):
                       3: Vector2(1, 0)}
         wall_direction = wall_cases[closest_wall_id] # [1,0] or [0,1]
 
-        # turn parallel to the wall to avoid going out of bounds
-        # aip.move_parallel(wall_direction, timestep=1/self._fps)
         aip.bounce(wall_direction, timestep=1/self._fps)
 
     def wander(self, aip):

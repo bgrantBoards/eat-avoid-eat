@@ -4,6 +4,7 @@
         "aip's",
         "blit",
         "colorsys",
-        "curr"
+        "curr",
+        "pytest"
     ]
 }

@@ -139,23 +139,6 @@ class Character():
         # update position
         self.update_pos(timestep)
 
-    def move_parallel(self, direction, timestep=1/30):
-        """
-        Update velocity to move parallel with a direction vector.
-
-        Args:
-            (Vector2) direction: the direction vector to move parallel with
-        """
-        move_backwards = direction.dot(self.velocity) < 0
-        if move_backwards:
-            new_v = direction.normalize() * self.max_speed() * -1
-        else:
-            new_v = direction.normalize() * self.max_speed()
-        self.velocity = new_v
-
-        # move
-        self.update_pos(timestep)
-
     def bounce(self, wall_direction, timestep=1/30):
         """
         Reflects character's velocity to bounce off of a wall.
@@ -211,7 +194,7 @@ class Player(Character):
         max_speed_scale = 2
         boost_scale = 1
         if self.boost & (self.growth_progress > 0):
-            boost_scale = (1.5*self.boost)
+            boost_scale = 1.5
 
         return self.speed_from_size[self.size] * max_speed_scale * boost_scale
 

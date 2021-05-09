@@ -190,8 +190,8 @@ class HungrySharksField():
                         self.player.size))
                 new_aip.relocate(self.player, self.window_x, self.window_y)
                 self.spawn_new_ai(new_aip)
-            if self.player.size > 10:
-                self.game_end = "win"
+        if self.player.size > 10:
+            self.game_end = "win"
 
     def update(self):
         """
